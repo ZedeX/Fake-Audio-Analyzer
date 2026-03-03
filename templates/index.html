@@ -590,6 +590,202 @@
             .player-controls { flex-wrap: wrap; }
             .time-display { min-width: 80px; font-size: 0.85em; }
         }
+
+        /* 本地预览区域样式 */
+        .preview-section {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 2px dashed #dee2e6;
+        }
+
+        .preview-section.active {
+            display: block;
+        }
+
+        .preview-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preview-spectrogram {
+            position: relative;
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .preview-spectrogram canvas {
+            width: 100%;
+            height: 200px;
+            display: block;
+        }
+
+        .selection-overlay {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            background: rgba(102, 126, 234, 0.3);
+            border: 2px solid #667eea;
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        .selection-handle {
+            position: absolute;
+            top: 0;
+            width: 8px;
+            height: 100%;
+            background: #667eea;
+            cursor: ew-resize;
+            z-index: 10;
+        }
+
+        .selection-handle.left {
+            border-radius: 4px 0 0 4px;
+        }
+
+        .selection-handle.right {
+            border-radius: 0 4px 4px 0;
+        }
+
+        .selection-info {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            pointer-events: none;
+        }
+
+        .time-ruler {
+            position: relative;
+            height: 25px;
+            background: #e9ecef;
+            border-radius: 0 0 8px 8px;
+            margin-top: -8px;
+        }
+
+        .time-marker {
+            position: absolute;
+            font-size: 0.7em;
+            color: #666;
+            transform: translateX(-50%);
+        }
+
+        .selection-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-group label {
+            font-size: 0.9em;
+            color: #555;
+            white-space: nowrap;
+        }
+
+        .control-group input[type="range"] {
+            width: 120px;
+        }
+
+        .control-group span {
+            font-weight: 600;
+            color: #333;
+            min-width: 60px;
+        }
+
+        .duration-select {
+            display: flex;
+            gap: 8px;
+        }
+
+        .duration-btn {
+            padding: 6px 14px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.2s;
+        }
+
+        .duration-btn:hover, .duration-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .preview-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .preview-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .preview-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .preview-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .preview-btn.secondary {
+            background: #e9ecef;
+            color: #555;
+        }
+
+        .preview-btn.secondary:hover {
+            background: #dee2e6;
+        }
+
+        .preview-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .preview-hint {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 10px;
+            padding: 10px;
+            background: #fff3cd;
+            border-radius: 6px;
+            border-left: 4px solid #ffc107;
+        }
     </style>
 </head>
 <body>
@@ -625,6 +821,54 @@
                         <div class="progress-bar-fill" id="progressBarFill"></div>
                     </div>
                     <div class="progress-text" id="progressText">上传中... 0%</div>
+                </div>
+
+                <!-- 本地预览区域 -->
+                <div class="preview-section" id="previewSection">
+                    <div class="preview-title">
+                        <span>📊</span>
+                        <span>本地频谱预览 - 拖动选择分析片段</span>
+                    </div>
+
+                    <div class="selection-controls">
+                        <div class="control-group">
+                            <label>片段时长：</label>
+                            <div class="duration-select">
+                                <button class="duration-btn" data-duration="1">1秒</button>
+                                <button class="duration-btn active" data-duration="2">2秒</button>
+                                <button class="duration-btn" data-duration="3">3秒</button>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label>起始时间：</label>
+                            <input type="range" id="startSlider" min="0" max="100" value="30">
+                            <span id="startTimeDisplay">00:00.000</span>
+                        </div>
+                        <div class="control-group">
+                            <label>结束时间：</label>
+                            <span id="endTimeDisplay">00:02.000</span>
+                        </div>
+                    </div>
+
+                    <div class="preview-spectrogram" id="previewSpectrogram">
+                        <canvas id="previewCanvas"></canvas>
+                        <div class="selection-overlay" id="selectionOverlay">
+                            <div class="selection-handle left" id="handleLeft"></div>
+                            <div class="selection-handle right" id="handleRight"></div>
+                        </div>
+                        <div class="selection-info" id="selectionInfo">选中: 00:00.000 - 00:02.000</div>
+                    </div>
+
+                    <div class="time-ruler" id="timeRuler"></div>
+
+                    <div class="preview-hint">
+                        💡 由于服务器限制，大文件需要截取片段上传分析。建议选择音频的高频部分或中间段落进行分析。
+                    </div>
+
+                    <div class="preview-actions">
+                        <button class="preview-btn secondary" id="cancelPreviewBtn">重新选择文件</button>
+                        <button class="preview-btn primary" id="uploadSegmentBtn">📤 上传选中片段进行分析</button>
+                    </div>
                 </div>
             </div>
             
@@ -738,7 +982,7 @@
         const loading = document.getElementById('loading');
         const results = document.getElementById('results');
         const errorMessage = document.getElementById('errorMessage');
-        
+
         // 播放器元素
         const playerCard = document.getElementById('playerCard');
         const audioPlayer = document.getElementById('audioPlayer');
@@ -753,15 +997,35 @@
         const timeTooltip = document.getElementById('timeTooltip');
         const formatWarning = document.getElementById('formatWarning');
         const playerControls = document.getElementById('playerControls');
-        
+
+        // 预览元素
+        const previewSection = document.getElementById('previewSection');
+        const previewCanvas = document.getElementById('previewCanvas');
+        const selectionOverlay = document.getElementById('selectionOverlay');
+        const selectionInfo = document.getElementById('selectionInfo');
+        const startSlider = document.getElementById('startSlider');
+        const startTimeDisplay = document.getElementById('startTimeDisplay');
+        const endTimeDisplay = document.getElementById('endTimeDisplay');
+        const timeRuler = document.getElementById('timeRuler');
+        const cancelPreviewBtn = document.getElementById('cancelPreviewBtn');
+        const uploadSegmentBtn = document.getElementById('uploadSegmentBtn');
+        const durationBtns = document.querySelectorAll('.duration-btn');
+
         let selectedFile = null;
         let audioData = null;
         let audioDuration = 0;
         let canPlay = true;
-        
+
+        // 本地预览相关
+        let audioContext = null;
+        let audioBuffer = null;
+        let previewSpectrogramData = null;
+        let segmentDuration = 2; // 默认2秒
+        let segmentStartTime = 0;
+
         // 不支持浏览器播放的格式
         const unsupportedFormats = ['.ape', '.wma', '.dsd', '.dff'];
-        
+
         // 格式化时间 (分:秒.毫秒)
         function formatTime(seconds) {
             const mins = Math.floor(seconds / 60);
@@ -772,152 +1036,494 @@
                 ms: `.${ms.toString().padStart(3, '0')}`
             };
         }
-        
+
         // 更新时间显示
         function updateTimeDisplay(element, seconds) {
             const time = formatTime(seconds);
             element.innerHTML = `${time.main}<span class="ms">${time.ms}</span>`;
         }
-        
+
         // 检查文件格式是否支持播放
         function checkPlayableFormat(filename) {
             const ext = filename.toLowerCase().substring(filename.lastIndexOf('.'));
             return !unsupportedFormats.includes(ext);
         }
-        
+
         // 点击上传区域
         uploadArea.addEventListener('click', () => fileInput.click());
-        
+
         // 文件选择
         fileInput.addEventListener('change', (e) => {
             if (e.target.files.length > 0) {
                 selectedFile = e.target.files[0];
-                updateUploadArea();
+                handleFileSelection();
             }
         });
-        
+
         // 拖拽上传
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
             uploadArea.classList.add('dragover');
         });
-        
+
         uploadArea.addEventListener('dragleave', () => {
             uploadArea.classList.remove('dragover');
         });
-        
+
         uploadArea.addEventListener('drop', (e) => {
             e.preventDefault();
             uploadArea.classList.remove('dragover');
             if (e.dataTransfer.files.length > 0) {
                 selectedFile = e.dataTransfer.files[0];
-                updateUploadArea();
+                handleFileSelection();
             }
         });
-        
-        function updateUploadArea() {
-            if (selectedFile) {
-                const fileSizeMB = (selectedFile.size / 1024 / 1024).toFixed(2);
-                document.getElementById('uploadText').textContent = selectedFile.name;
-                document.getElementById('uploadSubtext').textContent = `文件大小: ${fileSizeMB} MB`;
+
+        // 处理文件选择
+        async function handleFileSelection() {
+            if (!selectedFile) return;
+
+            const fileSizeMB = selectedFile.size / 1024 / 1024;
+            document.getElementById('uploadText').textContent = selectedFile.name;
+            document.getElementById('uploadSubtext').textContent = `文件大小: ${fileSizeMB.toFixed(2)} MB`;
+
+            // 小于3MB的文件直接上传，大于3MB的需要选择片段
+            if (fileSizeMB <= 3) {
                 analyzeBtn.style.display = 'block';
+                previewSection.classList.remove('active');
+            } else {
+                analyzeBtn.style.display = 'none';
+                // 显示加载状态
+                document.getElementById('uploadSubtext').textContent = `文件大小: ${fileSizeMB.toFixed(2)} MB - 正在生成预览...`;
+
+                try {
+                    await generateLocalPreview();
+                    previewSection.classList.add('active');
+                    document.getElementById('uploadSubtext').textContent = `文件大小: ${fileSizeMB.toFixed(2)} MB - 请选择分析片段`;
+                } catch (error) {
+                    showError('无法生成预览: ' + error.message);
+                    analyzeBtn.style.display = 'block';
+                }
             }
         }
-        
-        // 分析按钮
+
+        // 生成本地频谱预览
+        async function generateLocalPreview() {
+            // 创建 AudioContext
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+            // 读取文件
+            const arrayBuffer = await selectedFile.arrayBuffer();
+
+            // 解码音频
+            try {
+                audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+            } catch (e) {
+                throw new Error('无法解析此音频格式，请尝试其他格式');
+            }
+
+            audioDuration = audioBuffer.duration;
+
+            // 绘制频谱图
+            drawLocalSpectrogram();
+
+            // 生成时间刻度
+            generateTimeRuler();
+
+            // 初始化选择区域
+            const maxStart = Math.max(0, audioDuration - segmentDuration);
+            segmentStartTime = Math.min(audioDuration * 0.3, maxStart);
+            updateSelectionDisplay();
+        }
+
+        // 绘制本地频谱图
+        function drawLocalSpectrogram() {
+            const canvas = previewCanvas;
+            const ctx = canvas.getContext('2d');
+
+            // 设置画布大小
+            const width = canvas.parentElement.clientWidth;
+            const height = 200;
+            canvas.width = width;
+            canvas.height = height;
+
+            // 获取音频数据
+            const channelData = audioBuffer.getChannelData(0);
+            const sampleRate = audioBuffer.sampleRate;
+
+            // FFT 参数
+            const fftSize = 2048;
+            const hopSize = 512;
+
+            // 计算频谱数据
+            const spectrogram = computeSpectrogram(channelData, fftSize, hopSize);
+
+            // 绘制频谱图
+            const imageData = ctx.createImageData(width, height);
+            const data = imageData.data;
+
+            for (let x = 0; x < width; x++) {
+                const frameIndex = Math.floor(x * spectrogram.length / width);
+                const frame = spectrogram[frameIndex];
+
+                for (let y = 0; y < height; y++) {
+                    const freqIndex = Math.floor((height - y - 1) * frame.length / height);
+                    const magnitude = frame[freqIndex] || 0;
+
+                    // 转换为dB并映射到颜色
+                    const db = 20 * Math.log10(magnitude + 1e-10);
+                    const normalized = Math.max(0, Math.min(1, (db + 100) / 100));
+
+                    const pixelIndex = (y * width + x) * 4;
+
+                    // 颜色映射 (类似 matplotlib 的 viridis)
+                    const color = getSpectrogramColor(normalized);
+                    data[pixelIndex] = color.r;
+                    data[pixelIndex + 1] = color.g;
+                    data[pixelIndex + 2] = color.b;
+                    data[pixelIndex + 3] = 255;
+                }
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+            previewSpectrogramData = spectrogram;
+        }
+
+        // 计算频谱数据
+        function computeSpectrogram(signal, fftSize, hopSize) {
+            const frames = [];
+            const numFrames = Math.floor((signal.length - fftSize) / hopSize);
+
+            for (let i = 0; i < numFrames; i++) {
+                const start = i * hopSize;
+                const frame = new Float32Array(fftSize);
+
+                // 应用汉宁窗
+                for (let j = 0; j < fftSize; j++) {
+                    const window = 0.5 * (1 - Math.cos(2 * Math.PI * j / (fftSize - 1)));
+                    frame[j] = (signal[start + j] || 0) * window;
+                }
+
+                // 计算 FFT 幅度
+                const spectrum = computeFFTMagnitude(frame);
+                frames.push(spectrum);
+            }
+
+            return frames;
+        }
+
+        // 简化的 FFT 幅度计算
+        function computeFFTMagnitude(frame) {
+            const n = frame.length;
+            const spectrum = new Float32Array(n / 2);
+
+            // 使用 DFT 简化计算（性能考虑）
+            for (let k = 0; k < n / 2; k++) {
+                let real = 0, imag = 0;
+                for (let t = 0; t < n; t++) {
+                    const angle = 2 * Math.PI * k * t / n;
+                    real += frame[t] * Math.cos(angle);
+                    imag -= frame[t] * Math.sin(angle);
+                }
+                spectrum[k] = Math.sqrt(real * real + imag * imag) / n;
+            }
+
+            return spectrum;
+        }
+
+        // 获取频谱图颜色
+        function getSpectrogramColor(value) {
+            // Viridis-like color map
+            const r = Math.floor(255 * (0.267 + 0.329 * value + 2.88 * value * value - 5.05 * value * value * value + 2.56 * value * value * value * value));
+            const g = Math.floor(255 * (0.004 + 1.42 * value - 0.34 * value * value - 1.08 * value * value * value + 0.91 * value * value * value * value));
+            const b = Math.floor(255 * (0.329 + 1.44 * value - 2.98 * value * value + 1.98 * value * value * value));
+            return { r: Math.min(255, r), g: Math.min(255, g), b: Math.min(255, b) };
+        }
+
+        // 生成时间刻度
+        function generateTimeRuler() {
+            timeRuler.innerHTML = '';
+
+            const numMarkers = 5;
+            for (let i = 0; i <= numMarkers; i++) {
+                const time = (audioDuration * i / numMarkers);
+                const percent = (i / numMarkers) * 100;
+                const marker = document.createElement('span');
+                marker.className = 'time-marker';
+                marker.style.left = `${percent}%`;
+                marker.textContent = formatTime(time).main;
+                timeRuler.appendChild(marker);
+            }
+        }
+
+        // 更新选择显示
+        function updateSelectionDisplay() {
+            const startPercent = (segmentStartTime / audioDuration) * 100;
+            const widthPercent = (segmentDuration / audioDuration) * 100;
+
+            selectionOverlay.style.left = `${startPercent}%`;
+            selectionOverlay.style.width = `${widthPercent}%`;
+
+            const startTime = formatTime(segmentStartTime);
+            const endTime = formatTime(segmentStartTime + segmentDuration);
+
+            startTimeDisplay.textContent = startTime.main + startTime.ms;
+            endTimeDisplay.textContent = endTime.main + endTime.ms;
+            selectionInfo.textContent = `选中: ${startTime.main}${startTime.ms} - ${endTime.main}${endTime.ms}`;
+        }
+
+        // 片段时长选择
+        durationBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                durationBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                segmentDuration = parseInt(btn.dataset.duration);
+
+                // 确保不超过音频长度
+                const maxStart = Math.max(0, audioDuration - segmentDuration);
+                if (segmentStartTime > maxStart) {
+                    segmentStartTime = maxStart;
+                }
+
+                updateSelectionDisplay();
+            });
+        });
+
+        // 起始时间滑块
+        startSlider.addEventListener('input', (e) => {
+            const maxStart = Math.max(0, audioDuration - segmentDuration);
+            segmentStartTime = (e.target.value / 100) * maxStart;
+            updateSelectionDisplay();
+        });
+
+        // 预览频谱图点击选择
+        previewCanvas.addEventListener('click', (e) => {
+            const rect = previewCanvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickRatio = clickX / rect.width;
+            const clickTime = clickRatio * audioDuration;
+
+            // 设置新的起始时间，使点击位置在选择区域中心
+            let newStart = clickTime - segmentDuration / 2;
+            const maxStart = Math.max(0, audioDuration - segmentDuration);
+            newStart = Math.max(0, Math.min(maxStart, newStart));
+
+            segmentStartTime = newStart;
+            startSlider.value = (segmentStartTime / maxStart) * 100;
+            updateSelectionDisplay();
+        });
+
+        // 取消预览
+        cancelPreviewBtn.addEventListener('click', () => {
+            previewSection.classList.remove('active');
+            selectedFile = null;
+            audioBuffer = null;
+            fileInput.value = '';
+            document.getElementById('uploadText').textContent = '点击或拖拽音频文件到此处';
+            document.getElementById('uploadSubtext').textContent = '';
+            analyzeBtn.style.display = 'none';
+        });
+
+        // 上传选中片段
+        uploadSegmentBtn.addEventListener('click', async () => {
+            if (!audioBuffer) return;
+
+            uploadSegmentBtn.disabled = true;
+            uploadProgress.style.display = 'block';
+            progressText.textContent = '正在截取音频片段...';
+
+            try {
+                // 截取音频片段
+                const segmentBlob = await extractAudioSegment(segmentStartTime, segmentDuration);
+
+                progressText.textContent = '上传中...';
+                progressBarFill.style.width = '50%';
+
+                // 上传片段
+                const formData = new FormData();
+                formData.append('audio', segmentBlob, `segment_${Date.now()}.wav`);
+
+                uploadSegment(formData);
+            } catch (error) {
+                uploadProgress.style.display = 'none';
+                showError('截取失败: ' + error.message);
+                uploadSegmentBtn.disabled = false;
+            }
+        });
+
+        // 截取音频片段
+        async function extractAudioSegment(startTime, duration) {
+            const sampleRate = audioBuffer.sampleRate;
+            const startSample = Math.floor(startTime * sampleRate);
+            const numSamples = Math.floor(duration * sampleRate);
+            const numChannels = audioBuffer.numberOfChannels;
+
+            // 创建离线上下文
+            const offlineCtx = new OfflineAudioContext(numChannels, numSamples, sampleRate);
+
+            // 创建缓冲区
+            const segmentBuffer = offlineCtx.createBuffer(numChannels, numSamples, sampleRate);
+
+            // 复制数据
+            for (let ch = 0; ch < numChannels; ch++) {
+                const sourceData = audioBuffer.getChannelData(ch);
+                const destData = segmentBuffer.getChannelData(ch);
+                for (let i = 0; i < numSamples; i++) {
+                    destData[i] = sourceData[startSample + i] || 0;
+                }
+            }
+
+            // 转换为 WAV
+            return audioBufferToWav(segmentBuffer);
+        }
+
+        // AudioBuffer 转 WAV
+        function audioBufferToWav(buffer) {
+            const numChannels = buffer.numberOfChannels;
+            const sampleRate = buffer.sampleRate;
+            const format = 1; // PCM
+            const bitDepth = 16;
+
+            const bytesPerSample = bitDepth / 8;
+            const blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataSize = buffer.length * blockAlign;
+            const bufferSize = 44 + dataSize;
+
+            const arrayBuffer = new ArrayBuffer(bufferSize);
+            const view = new DataView(arrayBuffer);
+
+            // WAV 头
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, format, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, bitDepth, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            // 写入音频数据
+            const channels = [];
+            for (let i = 0; i < numChannels; i++) {
+                channels.push(buffer.getChannelData(i));
+            }
+
+            let offset = 44;
+            for (let i = 0; i < buffer.length; i++) {
+                for (let ch = 0; ch < numChannels; ch++) {
+                    const sample = Math.max(-1, Math.min(1, channels[ch][i]));
+                    const intSample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+                    view.setInt16(offset, intSample, true);
+                    offset += 2;
+                }
+            }
+
+            return new Blob([arrayBuffer], { type: 'audio/wav' });
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+
+        // 分析按钮（小文件直接上传）
         analyzeBtn.addEventListener('click', async () => {
             if (!selectedFile) return;
-            
+
             // 重置状态
             results.style.display = 'none';
             playerCard.style.display = 'none';
             errorMessage.style.display = 'none';
             uploadSection.classList.remove('collapsed');
-            
+
             analyzeBtn.disabled = true;
             uploadProgress.style.display = 'block';
-            
+
             const formData = new FormData();
             formData.append('audio', selectedFile);
-            
-            try {
-                // 使用 XMLHttpRequest 以显示上传进度
-                const xhr = new XMLHttpRequest();
-                
-                xhr.upload.addEventListener('progress', (e) => {
-                    if (e.lengthComputable) {
-                        const percent = Math.round((e.loaded / e.total) * 100);
-                        progressBarFill.style.width = `${percent}%`;
-                        progressText.textContent = `上传中... ${percent}%`;
-                    }
-                });
-                
-                xhr.addEventListener('load', () => {
-                    if (xhr.status === 200) {
-                        const data = JSON.parse(xhr.responseText);
-                        if (data.success) {
-                            // 折叠上传区域
-                            uploadSection.classList.add('collapsed');
-                            uploadProgress.style.display = 'none';
-                            showResults(data);
-                        } else {
-                            uploadProgress.style.display = 'none';
-                            showError(data.error || '分析失败');
-                        }
+
+            uploadSegment(formData);
+        });
+
+        // 上传片段
+        function uploadSegment(formData) {
+            const xhr = new XMLHttpRequest();
+
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    progressBarFill.style.width = `${percent}%`;
+                    progressText.textContent = `上传中... ${percent}%`;
+                }
+            });
+
+            xhr.addEventListener('load', () => {
+                if (xhr.status === 200) {
+                    const data = JSON.parse(xhr.responseText);
+                    if (data.success) {
+                        uploadSection.classList.add('collapsed');
+                        uploadProgress.style.display = 'none';
+                        previewSection.classList.remove('active');
+                        showResults(data);
                     } else {
                         uploadProgress.style.display = 'none';
-                        showError('服务器错误');
+                        showError(data.error || '分析失败');
                     }
-                    analyzeBtn.disabled = false;
-                });
-                
-                xhr.addEventListener('error', () => {
+                } else {
                     uploadProgress.style.display = 'none';
-                    showError('网络错误');
-                    analyzeBtn.disabled = false;
-                });
-                
-                // 上传完成回调
-                xhr.upload.addEventListener('load', () => {
-                    // 上传完成，显示分析中状态
-                    progressText.innerHTML = '⏳ 分析中...';
-                    progressBarFill.style.width = '100%';
-                    progressBarFill.style.animation = 'pulse 1s ease-in-out infinite';
-                });
-                
-                progressText.textContent = '上传中... 0%';
-                xhr.open('POST', '/upload');
-                xhr.send(formData);
-                
-            } catch (error) {
-                uploadProgress.style.display = 'none';
-                showError('错误: ' + error.message);
+                    showError('服务器错误');
+                }
                 analyzeBtn.disabled = false;
-            }
-        });
-        
+                uploadSegmentBtn.disabled = false;
+            });
+
+            xhr.addEventListener('error', () => {
+                uploadProgress.style.display = 'none';
+                showError('网络错误');
+                analyzeBtn.disabled = false;
+                uploadSegmentBtn.disabled = false;
+            });
+
+            xhr.upload.addEventListener('load', () => {
+                progressText.innerHTML = '⏳ 分析中...';
+                progressBarFill.style.width = '100%';
+                progressBarFill.style.animation = 'pulse 1s ease-in-out infinite';
+            });
+
+            progressText.textContent = '上传中... 0%';
+            xhr.open('POST', '/upload');
+            xhr.send(formData);
+        }
+
         function showResults(data) {
             const analysis = data.analysis;
             audioData = data.audio;
             audioDuration = analysis.duration;
-            
+
             // 质量评分
             const qualityGrade = analysis.quality_grade || 'C';
             const qualityScore = analysis.quality_score || 50;
             const qualityDesc = analysis.quality_desc || '一般';
-            
+
             const gradeTexts = { A: '优秀', B: '良好', C: '一般', D: '较差', E: '很差' };
-            
+
             document.getElementById('qualityBadge').textContent = qualityGrade;
             document.getElementById('qualityBadge').className = `quality-badge grade-${qualityGrade.toLowerCase()}`;
             document.getElementById('qualityTitle').textContent = `音频质量：${gradeTexts[qualityGrade] || '一般'}`;
             document.getElementById('qualityDesc').textContent = `评分 ${qualityScore} 分`;
             document.getElementById('confidenceValue').textContent = `${(analysis.confidence * 100).toFixed(0)}%`;
-            
+
             // 基本信息
             document.getElementById('sampleRate').textContent = `${(analysis.sample_rate / 1000).toFixed(1)} kHz`;
             document.getElementById('maxFreq').textContent = `${(analysis.max_effective_freq / 1000).toFixed(1)} kHz`;
-            
+
             // 音频类型
             let audioType = '未知';
             if (analysis.sample_rate <= 48000) {
@@ -926,11 +1532,11 @@
                 audioType = analysis.is_hi_res ? '真高解析度' : '疑似升频';
             }
             document.getElementById('audioType').textContent = audioType;
-            
+
             // 问题列表
             const issuesList = document.getElementById('issuesList');
             const issuesContainer = document.getElementById('issuesContainer');
-            
+
             if (analysis.issues && analysis.issues.length > 0) {
                 issuesList.style.display = 'block';
                 issuesContainer.innerHTML = analysis.issues.map(issue => `
@@ -942,17 +1548,17 @@
             } else {
                 issuesList.style.display = 'none';
             }
-            
+
             // 频谱图
             document.getElementById('spectrogram').src = `data:image/png;base64,${data.spectrogram}`;
-            
+
             // 播放器设置
             if (audioData) {
                 canPlay = checkPlayableFormat(audioData.filename);
-                
+
                 document.getElementById('audioFilename').textContent = audioData.filename;
                 updateTimeDisplay(totalTimeEl, audioDuration);
-                
+
                 if (canPlay) {
                     audioPlayer.src = `data:${audioData.mime};base64,${audioData.data}`;
                     formatWarning.style.display = 'none';
@@ -962,31 +1568,31 @@
                     formatWarning.style.display = 'block';
                     playerControls.style.opacity = '0.5';
                 }
-                
+
                 playerCard.style.display = 'block';
                 spectrogramWrapper.classList.add('interactive');
                 timelineBar.style.display = 'block';
-                
+
                 // 初始化时间线位置
                 timelineBar.style.left = '6.7%';
             }
-            
+
             results.style.display = 'block';
         }
-        
+
         // 播放器控制
         let animationId = null;
-        
+
         function updateTimeDisplaySmooth() {
             if (!audioPlayer.paused) {
                 updateTimeDisplay(currentTimeEl, audioPlayer.currentTime);
                 animationId = requestAnimationFrame(updateTimeDisplaySmooth);
             }
         }
-        
+
         playBtn.addEventListener('click', () => {
             if (!canPlay) return;
-            
+
             if (audioPlayer.paused) {
                 audioPlayer.play();
                 playBtn.textContent = '⏸';
@@ -999,14 +1605,14 @@
                 }
             }
         });
-        
+
         audioPlayer.addEventListener('timeupdate', () => {
             const progress = (audioPlayer.currentTime / audioDuration) * 100;
             progressFill.style.width = `${progress}%`;
-            
+
             updateTimeline(audioPlayer.currentTime);
         });
-        
+
         audioPlayer.addEventListener('ended', () => {
             playBtn.textContent = '▶';
             progressFill.style.width = '0%';
@@ -1015,70 +1621,65 @@
                 cancelAnimationFrame(animationId);
             }
         });
-        
+
         volumeSlider.addEventListener('input', (e) => {
             audioPlayer.volume = e.target.value;
         });
-        
+
         progressBar.addEventListener('click', (e) => {
             if (!canPlay) return;
             const rect = progressBar.getBoundingClientRect();
             const pos = (e.clientX - rect.left) / rect.width;
             audioPlayer.currentTime = pos * audioDuration;
         });
-        
-        // 频谱图时间线 - 需要考虑matplotlib频谱图的实际时间轴区域
-        // matplotlib频谱图通常有边距，时间轴从约6.7%开始到87%结束
+
+        // 频谱图时间线
         function updateTimeline(currentTime) {
             const img = document.getElementById('spectrogram');
             if (!img || img.clientWidth === 0) return;
-            
-            // 频谱图的时间轴区域（考虑matplotlib的边距）
-            const plotLeft = 0.067;  // 左边距比例
-            const plotRight = 0.87; // 右边距比例
+
+            const plotLeft = 0.067;
+            const plotRight = 0.87;
             const plotWidth = plotRight - plotLeft;
-            
-            // 计算时间线位置
+
             const pos = plotLeft + (currentTime / audioDuration) * plotWidth;
             timelineBar.style.left = `${pos * 100}%`;
         }
-        
+
         // 频谱图点击跳转
         spectrogramWrapper.addEventListener('click', (e) => {
             if (!audioData || !canPlay) return;
-            
+
             const img = document.getElementById('spectrogram');
             const rect = img.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
             const clickRatio = clickX / rect.width;
-            
-            // 频谱图的时间轴区域
+
             const plotLeft = 0.067;
             const plotRight = 0.87;
-            
-            // 只在时间轴区域内响应点击
+
             if (clickRatio >= plotLeft && clickRatio <= plotRight) {
                 const timeRatio = (clickRatio - plotLeft) / (plotRight - plotLeft);
                 audioPlayer.currentTime = timeRatio * audioDuration;
             }
         });
-        
+
         // 频谱图悬停显示时间
         spectrogramWrapper.addEventListener('mousemove', (e) => {
             if (!audioData) return;
-            
+
             const img = document.getElementById('spectrogram');
             const rect = img.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
             const clickRatio = clickX / rect.width;
-            
+
             const plotLeft = 0.067;
             const plotRight = 0.87;
-            
+
             if (clickRatio >= plotLeft && clickRatio <= plotRight) {
                 const timeRatio = (clickRatio - plotLeft) / (plotRight - plotLeft);
                 const time = timeRatio * audioDuration;
-                
+
                 timeTooltip.textContent = formatTime(time).main + formatTime(time).ms;
                 timeTooltip.style.left = `${clickX}px`;
                 timeTooltip.style.display = 'block';
@@ -1086,11 +1687,11 @@
                 timeTooltip.style.display = 'none';
             }
         });
-        
+
         spectrogramWrapper.addEventListener('mouseleave', () => {
             timeTooltip.style.display = 'none';
         });
-        
+
         function showError(message) {
             errorMessage.textContent = message;
             errorMessage.style.display = 'block';
