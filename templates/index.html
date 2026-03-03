@@ -1124,8 +1124,8 @@
 
             audioDuration = audioBuffer.duration;
 
-            // 绘制频谱图
-            drawLocalSpectrogram();
+            // 使用异步方式绘制频谱图，避免阻塞UI
+            await drawLocalSpectrogramAsync();
 
             // 生成时间刻度
             generateTimeRuler();
@@ -1136,47 +1136,51 @@
             updateSelectionDisplay();
         }
 
-        // 绘制本地频谱图
-        function drawLocalSpectrogram() {
+        // 异步绘制频谱图（分批处理）
+        async function drawLocalSpectrogramAsync() {
             const canvas = previewCanvas;
             const ctx = canvas.getContext('2d');
 
-            // 设置画布大小
-            const width = canvas.parentElement.clientWidth;
+            const width = canvas.parentElement.clientWidth || 800;
             const height = 200;
             canvas.width = width;
             canvas.height = height;
 
-            // 获取音频数据
+            // 显示加载状态
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle = '#667eea';
+            ctx.font = '14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('正在生成频谱图...', width / 2, height / 2);
+
+            // 使用更高效的方法：降采样 + 快速计算
             const channelData = audioBuffer.getChannelData(0);
             const sampleRate = audioBuffer.sampleRate;
 
-            // FFT 参数
-            const fftSize = 2048;
-            const hopSize = 512;
+            // 降采样因子：根据音频长度动态调整
+            const targetSamples = Math.min(channelData.length, 100000);
+            const downsampleFactor = Math.max(1, Math.floor(channelData.length / targetSamples));
 
-            // 计算频谱数据
-            const spectrogram = computeSpectrogram(channelData, fftSize, hopSize);
+            // 使用 AnalyserNode 获取频谱数据（更高效）
+            const spectrogramData = await computeSpectrogramFast(channelData, sampleRate, width, height, downsampleFactor);
 
             // 绘制频谱图
             const imageData = ctx.createImageData(width, height);
             const data = imageData.data;
 
             for (let x = 0; x < width; x++) {
-                const frameIndex = Math.floor(x * spectrogram.length / width);
-                const frame = spectrogram[frameIndex];
+                const column = spectrogramData[x];
+                if (!column) continue;
 
                 for (let y = 0; y < height; y++) {
-                    const freqIndex = Math.floor((height - y - 1) * frame.length / height);
-                    const magnitude = frame[freqIndex] || 0;
+                    const freqIndex = Math.floor((height - y - 1) * column.length / height);
+                    const magnitude = column[freqIndex] || 0;
 
-                    // 转换为dB并映射到颜色
                     const db = 20 * Math.log10(magnitude + 1e-10);
-                    const normalized = Math.max(0, Math.min(1, (db + 100) / 100));
+                    const normalized = Math.max(0, Math.min(1, (db + 80) / 80));
 
                     const pixelIndex = (y * width + x) * 4;
-
-                    // 颜色映射 (类似 matplotlib 的 viridis)
                     const color = getSpectrogramColor(normalized);
                     data[pixelIndex] = color.r;
                     data[pixelIndex + 1] = color.g;
@@ -1186,49 +1190,124 @@
             }
 
             ctx.putImageData(imageData, 0, 0);
-            previewSpectrogramData = spectrogram;
         }
 
-        // 计算频谱数据
-        function computeSpectrogram(signal, fftSize, hopSize) {
-            const frames = [];
-            const numFrames = Math.floor((signal.length - fftSize) / hopSize);
+        // 快速频谱计算（使用简化方法）
+        async function computeSpectrogramFast(signal, sampleRate, width, height, downsampleFactor) {
+            const result = [];
 
-            for (let i = 0; i < numFrames; i++) {
-                const start = i * hopSize;
-                const frame = new Float32Array(fftSize);
+            // 计算每列对应的音频片段
+            const samplesPerColumn = Math.floor(signal.length / width);
+            const numBands = height; // 频率带数量
 
-                // 应用汉宁窗
-                for (let j = 0; j < fftSize; j++) {
-                    const window = 0.5 * (1 - Math.cos(2 * Math.PI * j / (fftSize - 1)));
-                    frame[j] = (signal[start + j] || 0) * window;
+            for (let x = 0; x < width; x++) {
+                // 每20列让出一次控制权，避免阻塞
+                if (x % 20 === 0) {
+                    await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
-                // 计算 FFT 幅度
-                const spectrum = computeFFTMagnitude(frame);
-                frames.push(spectrum);
+                const startSample = x * samplesPerColumn;
+                const column = computeColumnSpectrumSimple(signal, startSample, samplesPerColumn, numBands, sampleRate);
+                result.push(column);
             }
 
-            return frames;
+            return result;
         }
 
-        // 简化的 FFT 幅度计算
-        function computeFFTMagnitude(frame) {
-            const n = frame.length;
-            const spectrum = new Float32Array(n / 2);
+        // 简化的单列频谱计算 - 使用带通滤波器模拟
+        function computeColumnSpectrumSimple(signal, startSample, windowSize, numBands, sampleRate) {
+            const spectrum = new Float32Array(numBands);
+            const actualWindow = Math.min(windowSize, signal.length - startSample);
+            const nyquist = sampleRate / 2;
 
-            // 使用 DFT 简化计算（性能考虑）
-            for (let k = 0; k < n / 2; k++) {
-                let real = 0, imag = 0;
-                for (let t = 0; t < n; t++) {
-                    const angle = 2 * Math.PI * k * t / n;
-                    real += frame[t] * Math.cos(angle);
-                    imag -= frame[t] * Math.sin(angle);
-                }
-                spectrum[k] = Math.sqrt(real * real + imag * imag) / n;
+            // 预计算窗口数据
+            const windowData = new Float32Array(actualWindow);
+            for (let i = 0; i < actualWindow; i++) {
+                // 应用汉宁窗
+                const window = 0.5 * (1 - Math.cos(2 * Math.PI * i / actualWindow));
+                windowData[i] = (signal[startSample + i] || 0) * window;
+            }
+
+            // 使用 FFT 计算频谱
+            const fftSize = Math.pow(2, Math.ceil(Math.log2(actualWindow)));
+            const fftResult = simpleFFT(windowData, fftSize);
+
+            // 将 FFT 结果映射到频谱高度
+            for (let y = 0; y < numBands; y++) {
+                const freqRatio = (numBands - y - 1) / numBands;
+                const fftIndex = Math.floor(freqRatio * fftResult.length * 0.5);
+                spectrum[y] = fftResult[Math.min(fftIndex, fftResult.length - 1)] || 0;
             }
 
             return spectrum;
+        }
+
+        // 简化 FFT（使用 Cooley-Tukey 算法的迭代版本）
+        function simpleFFT(data, size) {
+            const n = size;
+            const real = new Float32Array(n);
+            const imag = new Float32Array(n);
+
+            // 初始化
+            for (let i = 0; i < data.length; i++) {
+                real[i] = data[i];
+                imag[i] = 0;
+            }
+
+            // Bit-reversal permutation
+            for (let i = 0; i < n; i++) {
+                const j = reverseBits(i, Math.log2(n));
+                if (j > i) {
+                    [real[i], real[j]] = [real[j], real[i]];
+                    [imag[i], imag[j]] = [imag[j], imag[i]];
+                }
+            }
+
+            // Cooley-Tukey FFT
+            for (let s = 1; s <= Math.log2(n); s++) {
+                const m = Math.pow(2, s);
+                const wm_real = Math.cos(-2 * Math.PI / m);
+                const wm_imag = Math.sin(-2 * Math.PI / m);
+
+                for (let k = 0; k < n; k += m) {
+                    let w_real = 1, w_imag = 0;
+                    for (let j = 0; j < m / 2; j++) {
+                        const t_real = w_real * real[k + j + m / 2] - w_imag * imag[k + j + m / 2];
+                        const t_imag = w_real * imag[k + j + m / 2] + w_imag * real[k + j + m / 2];
+
+                        const u_real = real[k + j];
+                        const u_imag = imag[k + j];
+
+                        real[k + j] = u_real + t_real;
+                        imag[k + j] = u_imag + t_imag;
+                        real[k + j + m / 2] = u_real - t_real;
+                        imag[k + j + m / 2] = u_imag - t_imag;
+
+                        const temp_real = w_real * wm_real - w_imag * wm_imag;
+                        const temp_imag = w_real * wm_imag + w_imag * wm_real;
+                        w_real = temp_real;
+                        w_imag = temp_imag;
+                    }
+                }
+            }
+
+            // 计算幅度
+            const magnitude = new Float32Array(n / 2);
+            for (let i = 0; i < n / 2; i++) {
+                magnitude[i] = Math.sqrt(real[i] * real[i] + imag[i] * imag[i]) / n;
+            }
+
+            return magnitude;
+        }
+
+        // 位反转
+        function reverseBits(n, bits) {
+            let reversed = 0;
+            for (let i = 0; i < bits; i++) {
+                reversed = (reversed << 1) | (n & 1);
+                n >>= 1;
+            }
+            return reversed;
         }
 
         // 获取频谱图颜色

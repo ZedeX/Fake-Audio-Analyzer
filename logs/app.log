@@ -320,3 +320,11 @@
 2026-03-04 00:04:05,962 - INFO - 音频分析完成: 雪花飞 - 衡越.mp3
 2026-03-04 00:04:05,963 - INFO - 临时文件已清理: uploads\6dc5b611-93ea-4df8-9a2d-689d41cb77f9_雪花飞 - 衡越.mp3
 2026-03-04 00:04:05,983 - INFO - 127.0.0.1 - - [04/Mar/2026 00:04:05] "POST /upload HTTP/1.1" 200 -
+2026-03-04 00:26:02,054 - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.192:5000
+2026-03-04 00:26:02,055 - INFO - Press CTRL+C to quit
+2026-03-04 00:26:21,149 - INFO - 127.0.0.1 - - [04/Mar/2026 00:26:21] "GET / HTTP/1.1" 200 -
+2026-03-04 00:26:21,626 - INFO - 127.0.0.1 - - [04/Mar/2026 00:26:21] "GET /static/favicon.png HTTP/1.1" 200 -
+2026-03-04 00:26:21,642 - INFO - 127.0.0.1 - - [04/Mar/2026 00:26:21] "GET /static/favicon.svg HTTP/1.1" 200 -
