@@ -1695,7 +1695,7 @@
                 timelineBar.style.display = 'block';
 
                 // 初始化时间线位置
-                timelineBar.style.left = '6.7%';
+                timelineBar.style.left = '7%';
             }
 
             results.style.display = 'block';
@@ -1736,7 +1736,7 @@
         audioPlayer.addEventListener('ended', () => {
             playBtn.textContent = '▶';
             progressFill.style.width = '0%';
-            timelineBar.style.left = '6.7%';
+            timelineBar.style.left = '7%';
             if (animationId) {
                 cancelAnimationFrame(animationId);
             }
@@ -1758,7 +1758,7 @@
             const img = document.getElementById('spectrogram');
             if (!img || img.clientWidth === 0) return;
 
-            const plotLeft = 0.067;
+            const plotLeft = 0.07;
             const plotRight = 0.87;
             const plotWidth = plotRight - plotLeft;
 
@@ -1775,7 +1775,7 @@
             const clickX = e.clientX - rect.left;
             const clickRatio = clickX / rect.width;
 
-            const plotLeft = 0.067;
+            const plotLeft = 0.07;
             const plotRight = 0.87;
 
             if (clickRatio >= plotLeft && clickRatio <= plotRight) {
@@ -1793,7 +1793,7 @@
             const clickX = e.clientX - rect.left;
             const clickRatio = clickX / rect.width;
 
-            const plotLeft = 0.067;
+            const plotLeft = 0.07;
             const plotRight = 0.87;
 
             if (clickRatio >= plotLeft && clickRatio <= plotRight) {
