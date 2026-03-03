@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-PWJ2RC6N');</script>
+    <!-- End Google Tag Manager -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>音频真伪检测器 - Fake Audio Analyzer</title>
@@ -17,14 +24,14 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 15px;
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
             background: white;
-            border-radius: 20px;
+            border-radius: 16px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             overflow: hidden;
         }
@@ -32,37 +39,57 @@
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 30px;
+            padding: 20px 30px;
             text-align: center;
         }
         
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 1.8em;
+            margin-bottom: 5px;
         }
         
         .header p {
-            font-size: 1.1em;
+            font-size: 0.95em;
             opacity: 0.9;
         }
         
         .content {
-            padding: 40px;
+            padding: 20px 30px;
+        }
+        
+        /* 上传区域 */
+        .upload-section {
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-section.collapsed .upload-area {
+            padding: 15px 20px;
+        }
+        
+        .upload-section.collapsed .upload-icon,
+        .upload-section.collapsed .upload-subtext,
+        .upload-section.collapsed .upload-info {
+            display: none;
+        }
+        
+        .upload-section.collapsed .upload-text {
+            margin-bottom: 0;
         }
         
         .upload-area {
-            border: 3px dashed #667eea;
-            border-radius: 15px;
-            padding: 60px 20px;
+            border: 2px dashed #667eea;
+            border-radius: 12px;
+            padding: 30px 20px;
             text-align: center;
-            margin-bottom: 30px;
             transition: all 0.3s ease;
             cursor: pointer;
+            background: #fafbff;
         }
         
         .upload-area:hover {
             border-color: #764ba2;
-            background: #f8f9ff;
+            background: #f0f3ff;
         }
         
         .upload-area.dragover {
@@ -71,63 +98,102 @@
         }
         
         .upload-icon {
-            font-size: 3em;
+            font-size: 2.5em;
             color: #667eea;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
         
         .upload-text {
-            font-size: 1.2em;
+            font-size: 1.1em;
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         
         .upload-subtext {
             color: #666;
-            font-size: 0.9em;
+            font-size: 0.85em;
+            margin-bottom: 8px;
         }
         
-        #fileInput {
-            display: none;
+        .upload-info {
+            background: #f0f3ff;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 0.8em;
+            color: #555;
+            display: inline-block;
         }
+        
+        .upload-info strong { color: #667eea; }
+        
+        #fileInput { display: none; }
         
         .analyze-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 15px 40px;
-            font-size: 1.1em;
-            border-radius: 30px;
+            padding: 12px 35px;
+            font-size: 1em;
+            border-radius: 25px;
             cursor: pointer;
             transition: all 0.3s ease;
             display: none;
-            margin: 20px auto;
+            margin: 15px auto;
         }
         
         .analyze-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
         }
         
         .analyze-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* 上传进度条 */
+        .upload-progress {
+            display: none;
+            margin-top: 15px;
+        }
+        
+        .progress-bar-wrapper {
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.2s;
+            border-radius: 3px;
+        }
+        
+        .progress-text {
+            text-align: center;
+            font-size: 0.85em;
+            color: #666;
         }
         
         .loading {
             display: none;
             text-align: center;
-            padding: 40px;
+            padding: 30px;
         }
         
         .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+            width: 40px;
+            height: 40px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 15px;
         }
         
         @keyframes spin {
@@ -135,130 +201,432 @@
             100% { transform: rotate(360deg); }
         }
         
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
         .results {
             display: none;
-            margin-top: 30px;
         }
         
+        /* 结果报告卡片 */
         .result-card {
-            background: #f8f9ff;
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 20px;
+            background: linear-gradient(135deg, #f8f9ff 0%, #f0f3ff 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
         }
         
-        .result-title {
-            font-size: 1.5em;
-            color: #333;
-            margin-bottom: 20px;
+        .result-header {
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
         }
         
-        .status-icon {
-            font-size: 1.2em;
-            margin-right: 10px;
+        .quality-display {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
         
-        .status-good {
-            color: #4caf50;
+        .quality-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1.5em;
         }
         
-        .status-warning {
-            color: #ff9800;
+        .quality-badge.grade-a { background: linear-gradient(135deg, #4caf50, #8bc34a); color: white; }
+        .quality-badge.grade-b { background: linear-gradient(135deg, #8bc34a, #cddc39); color: white; }
+        .quality-badge.grade-c { background: linear-gradient(135deg, #ff9800, #ffc107); color: white; }
+        .quality-badge.grade-d { background: linear-gradient(135deg, #f44336, #ff5722); color: white; }
+        .quality-badge.grade-e { background: linear-gradient(135deg, #9c27b0, #673ab7); color: white; }
+        
+        .quality-info h2 {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 3px;
         }
         
-        .status-bad {
-            color: #f44336;
-        }
-        
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .info-item {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        .info-label {
+        .quality-info .desc {
             font-size: 0.9em;
             color: #666;
-            margin-bottom: 5px;
         }
         
-        .info-value {
-            font-size: 1.2em;
+        .confidence-display {
+            text-align: right;
+        }
+        
+        .confidence-display .value {
+            font-size: 1.4em;
             font-weight: bold;
+            color: #667eea;
+        }
+        
+        .confidence-display .label {
+            font-size: 0.75em;
+            color: #888;
+        }
+        
+        /* 指标网格 */
+        .metrics-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .metric-item {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 10px;
+            flex: 1;
+            min-width: 140px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+        
+        .metric-item.has-tooltip {
+            cursor: help;
+        }
+        
+        .metric-item.has-tooltip:hover .tooltip {
+            display: block;
+        }
+        
+        .tooltip {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.75em;
+            white-space: nowrap;
+            z-index: 100;
+            margin-bottom: 8px;
+            max-width: 250px;
+            white-space: normal;
+            line-height: 1.4;
+        }
+        
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: #333;
+        }
+        
+        .metric-label {
+            font-size: 0.75em;
+            color: #888;
+            margin-bottom: 3px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .metric-label .info-icon {
+            font-size: 0.9em;
+            opacity: 0.5;
+        }
+        
+        .metric-value {
+            font-size: 1.1em;
+            font-weight: 600;
             color: #333;
         }
         
+        /* 问题列表 */
         .issues-list {
             background: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-top: 12px;
+            border-left: 3px solid #ff9800;
+        }
+        
+        .issues-list h4 {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 8px;
         }
         
         .issue-item {
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
+            padding: 6px 0;
+            font-size: 0.85em;
+            color: #555;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
+        
+        /* 播放器 */
+        .player-card {
+            background: #f8f9ff;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .player-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        
+        .player-title {
+            font-size: 0.95em;
+            color: #333;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            max-width: 70%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .player-title .filename {
+            color: #667eea;
+        }
+        
+        .format-warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+        }
+        
+        .audio-player { display: none; }
+        
+        .player-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .play-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            font-size: 1.2em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .play-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .time-display {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            color: #333;
+            background: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            min-width: 95px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .time-display .ms {
+            color: #888;
+            font-size: 0.85em;
+        }
+        
+        .progress-container {
+            flex: 1;
             display: flex;
             align-items: center;
         }
         
-        .issue-item:last-child {
-            border-bottom: none;
+        .progress-bar {
+            flex: 1;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
         }
         
-        .issue-icon {
-            margin-right: 10px;
-            font-size: 1.2em;
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 3px;
+            width: 0%;
         }
         
-        .spectrogram-container {
-            text-align: center;
-            margin-top: 30px;
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
         
-        .spectrogram-container img {
+        .volume-slider {
+            width: 60px;
+            cursor: pointer;
+        }
+        
+        /* 频谱图 */
+        .spectrogram-section {
+            margin-top: 15px;
+        }
+        
+        .spectrogram-title {
+            font-size: 0.95em;
+            color: #333;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .spectrogram-title small {
+            font-weight: normal;
+            color: #888;
+            font-size: 0.85em;
+        }
+        
+        .spectrogram-wrapper {
+            position: relative;
+            display: inline-block;
             max-width: 100%;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            background: #f5f5f5;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .spectrogram-wrapper img {
+            max-width: 100%;
+            display: block;
+        }
+        
+        .timeline-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 2px;
+            height: 100%;
+            background: #ff4444;
+            pointer-events: none;
+            display: none;
+            box-shadow: 0 0 8px rgba(255, 68, 68, 0.6);
+            z-index: 10;
+        }
+        
+        .timeline-bar::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            width: 10px;
+            height: 10px;
+            background: #ff4444;
+            border-radius: 50%;
+        }
+        
+        .spectrogram-wrapper.interactive {
+            cursor: pointer;
+        }
+        
+        .time-tooltip {
+            position: absolute;
+            top: -28px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            display: none;
+            pointer-events: none;
         }
         
         .error-message {
             background: #ffebee;
             color: #c62828;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-top: 15px;
             display: none;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 600px) {
+            .content { padding: 15px; }
+            .header { padding: 15px 20px; }
+            .header h1 { font-size: 1.5em; }
+            .metrics-row { flex-direction: column; }
+            .metric-item { min-width: 100%; }
+            .player-controls { flex-wrap: wrap; }
+            .time-display { min-width: 80px; font-size: 0.85em; }
         }
     </style>
 </head>
 <body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PWJ2RC6N"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
     <div class="container">
         <div class="header">
             <h1>🎵 音频真伪检测器</h1>
-            <p>基于频谱分析技术，快速识别假无损和假高解析度音频</p>
+            <p>基于 FFT 频谱分析与 STFT 时频变换，结合 librosa 信号处理技术，精准识别假无损与升频音频</p>
         </div>
         
         <div class="content">
-            <div class="upload-area" id="uploadArea">
-                <div class="upload-icon">📁</div>
-                <div class="upload-text">点击或拖拽音频文件到此处</div>
-                <div class="upload-subtext">支持 FLAC, MP3, WAV 等格式 (最大 200MB)</div>
+            <!-- 上传区域 -->
+            <div class="upload-section" id="uploadSection">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text" id="uploadText">点击或拖拽音频文件到此处</div>
+                    <div class="upload-subtext" id="uploadSubtext"></div>
+                    <div class="upload-info">
+                        <strong>支持格式：</strong>FLAC, WAV, MP3, APE, OGG, M4A, AAC, WMA<br>
+                        <strong>文件大小：</strong>最大 200MB | <strong>注意：</strong>部分格式(如APE)可能无法在线播放
+                    </div>
+                </div>
+                
+                <input type="file" id="fileInput" accept="audio/*,.flac,.ape,.wav,.mp3,.ogg,.m4a,.aac,.wma">
+                
+                <button class="analyze-btn" id="analyzeBtn">🔍 开始分析</button>
+                
+                <div class="upload-progress" id="uploadProgress">
+                    <div class="progress-bar-wrapper">
+                        <div class="progress-bar-fill" id="progressBarFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">上传中... 0%</div>
+                </div>
             </div>
-            
-            <input type="file" id="fileInput" accept="audio/*">
-            
-            <button class="analyze-btn" id="analyzeBtn">开始分析</button>
             
             <div class="loading" id="loading">
                 <div class="spinner"></div>
@@ -267,64 +635,158 @@
             
             <div class="error-message" id="errorMessage"></div>
             
+            <!-- 结果区域 -->
             <div class="results" id="results">
+                <!-- 分析结果报告 -->
                 <div class="result-card">
-                    <div class="result-title" id="overallStatus">
-                        <span class="status-icon">🔍</span>
-                        分析结果
+                    <div class="result-header">
+                        <div class="quality-display">
+                            <div class="quality-badge" id="qualityBadge">A</div>
+                            <div class="quality-info">
+                                <h2 id="qualityTitle">音频质量：优秀</h2>
+                                <div class="desc" id="qualityDesc">评分 95 分</div>
+                            </div>
+                        </div>
+                        <div class="confidence-display">
+                            <div class="value" id="confidenceValue">85%</div>
+                            <div class="label">检测置信度</div>
+                        </div>
                     </div>
                     
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <div class="info-label">采样率</div>
-                            <div class="info-value" id="sampleRate">-</div>
+                    <div class="metrics-row">
+                        <div class="metric-item has-tooltip">
+                            <div class="metric-label">
+                                采样率 <span class="info-icon">ℹ️</span>
+                            </div>
+                            <div class="tooltip">音频每秒采样的次数，CD音质为44.1kHz，高解析度通常≥96kHz</div>
+                            <div class="metric-value" id="sampleRate">-</div>
                         </div>
-                        <div class="info-item">
-                            <div class="info-label">时长</div>
-                            <div class="info-value" id="duration">-</div>
+                        <div class="metric-item has-tooltip">
+                            <div class="metric-label">
+                                最高有效频率 <span class="info-icon">ℹ️</span>
+                            </div>
+                            <div class="tooltip">音频实际包含的最高频率成分。CD音质应达20kHz，假无损通常在16kHz截断</div>
+                            <div class="metric-value" id="maxFreq">-</div>
                         </div>
-                        <div class="info-item">
-                            <div class="info-label">最高有效频率</div>
-                            <div class="info-value" id="maxFreq">-</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">音频类型</div>
-                            <div class="info-value" id="audioType">-</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">检测置信度</div>
-                            <div class="info-value" id="confidence">-</div>
+                        <div class="metric-item has-tooltip">
+                            <div class="metric-label">
+                                音频类型 <span class="info-icon">ℹ️</span>
+                            </div>
+                            <div class="tooltip">根据采样率和频率特征判断的音频类型</div>
+                            <div class="metric-value" id="audioType">-</div>
                         </div>
                     </div>
                     
                     <div class="issues-list" id="issuesList" style="display: none;">
-                        <h3 style="margin-bottom: 15px; color: #333;">检测到的问题</h3>
+                        <h4>检测到的问题</h4>
                         <div id="issuesContainer"></div>
                     </div>
                 </div>
                 
-                <div class="spectrogram-container">
-                    <h3 style="margin-bottom: 20px; color: #333;">频谱图</h3>
-                    <img id="spectrogram" src="" alt="频谱图">
+                <!-- 播放器 -->
+                <div class="player-card" id="playerCard">
+                    <div class="player-header">
+                        <div class="player-title">
+                            <span>🎵</span>
+                            <span class="filename" id="audioFilename">音频文件</span>
+                        </div>
+                        <div class="format-warning" id="formatWarning" style="display: none;">
+                            此格式无法在线播放
+                        </div>
+                    </div>
+                    <audio id="audioPlayer" class="audio-player"></audio>
+                    <div class="player-controls" id="playerControls">
+                        <button class="play-btn" id="playBtn">▶</button>
+                        <div class="time-display" id="currentTime">00:00<span class="ms">.000</span></div>
+                        <div class="progress-container">
+                            <div class="progress-bar" id="progressBar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                        </div>
+                        <div class="time-display" id="totalTime">00:00<span class="ms">.000</span></div>
+                        <div class="volume-control">
+                            <span>🔊</span>
+                            <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.1" value="0.7">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 频谱图 -->
+                <div class="spectrogram-section">
+                    <div class="spectrogram-title">
+                        📊 频谱图 <small>(点击跳转播放位置)</small>
+                    </div>
+                    <div class="spectrogram-wrapper" id="spectrogramWrapper">
+                        <img id="spectrogram" src="" alt="频谱图">
+                        <div class="timeline-bar" id="timelineBar"></div>
+                        <div class="time-tooltip" id="timeTooltip"></div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // DOM元素
+        const uploadSection = document.getElementById('uploadSection');
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
         const analyzeBtn = document.getElementById('analyzeBtn');
+        const uploadProgress = document.getElementById('uploadProgress');
+        const progressBarFill = document.getElementById('progressBarFill');
+        const progressText = document.getElementById('progressText');
         const loading = document.getElementById('loading');
         const results = document.getElementById('results');
         const errorMessage = document.getElementById('errorMessage');
         
+        // 播放器元素
+        const playerCard = document.getElementById('playerCard');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const playBtn = document.getElementById('playBtn');
+        const currentTimeEl = document.getElementById('currentTime');
+        const totalTimeEl = document.getElementById('totalTime');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const spectrogramWrapper = document.getElementById('spectrogramWrapper');
+        const timelineBar = document.getElementById('timelineBar');
+        const timeTooltip = document.getElementById('timeTooltip');
+        const formatWarning = document.getElementById('formatWarning');
+        const playerControls = document.getElementById('playerControls');
+        
         let selectedFile = null;
+        let audioData = null;
+        let audioDuration = 0;
+        let canPlay = true;
+        
+        // 不支持浏览器播放的格式
+        const unsupportedFormats = ['.ape', '.wma', '.dsd', '.dff'];
+        
+        // 格式化时间 (分:秒.毫秒)
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            const ms = Math.floor((seconds % 1) * 1000);
+            return {
+                main: `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`,
+                ms: `.${ms.toString().padStart(3, '0')}`
+            };
+        }
+        
+        // 更新时间显示
+        function updateTimeDisplay(element, seconds) {
+            const time = formatTime(seconds);
+            element.innerHTML = `${time.main}<span class="ms">${time.ms}</span>`;
+        }
+        
+        // 检查文件格式是否支持播放
+        function checkPlayableFormat(filename) {
+            const ext = filename.toLowerCase().substring(filename.lastIndexOf('.'));
+            return !unsupportedFormats.includes(ext);
+        }
         
         // 点击上传区域
-        uploadArea.addEventListener('click', () => {
-            fileInput.click();
-        });
+        uploadArea.addEventListener('click', () => fileInput.click());
         
         // 文件选择
         fileInput.addEventListener('change', (e) => {
@@ -347,7 +809,6 @@
         uploadArea.addEventListener('drop', (e) => {
             e.preventDefault();
             uploadArea.classList.remove('dragover');
-            
             if (e.dataTransfer.files.length > 0) {
                 selectedFile = e.dataTransfer.files[0];
                 updateUploadArea();
@@ -357,88 +818,124 @@
         function updateUploadArea() {
             if (selectedFile) {
                 const fileSizeMB = (selectedFile.size / 1024 / 1024).toFixed(2);
-                uploadArea.innerHTML = `
-                    <div class="upload-icon">🎵</div>
-                    <div class="upload-text">${selectedFile.name}</div>
-                    <div class="upload-subtext">文件大小: ${fileSizeMB} MB</div>
-                `;
+                document.getElementById('uploadText').textContent = selectedFile.name;
+                document.getElementById('uploadSubtext').textContent = `文件大小: ${fileSizeMB} MB`;
                 analyzeBtn.style.display = 'block';
             }
         }
         
-        // 分析按钮点击
+        // 分析按钮
         analyzeBtn.addEventListener('click', async () => {
             if (!selectedFile) return;
             
-            // 隐藏之前的结果
+            // 重置状态
             results.style.display = 'none';
+            playerCard.style.display = 'none';
             errorMessage.style.display = 'none';
+            uploadSection.classList.remove('collapsed');
             
-            // 显示加载状态
-            loading.style.display = 'block';
             analyzeBtn.disabled = true;
+            uploadProgress.style.display = 'block';
             
             const formData = new FormData();
             formData.append('audio', selectedFile);
             
             try {
-                const response = await fetch('/upload', {
-                    method: 'POST',
-                    body: formData
+                // 使用 XMLHttpRequest 以显示上传进度
+                const xhr = new XMLHttpRequest();
+                
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        progressBarFill.style.width = `${percent}%`;
+                        progressText.textContent = `上传中... ${percent}%`;
+                    }
                 });
                 
-                const data = await response.json();
+                xhr.addEventListener('load', () => {
+                    if (xhr.status === 200) {
+                        const data = JSON.parse(xhr.responseText);
+                        if (data.success) {
+                            // 折叠上传区域
+                            uploadSection.classList.add('collapsed');
+                            uploadProgress.style.display = 'none';
+                            showResults(data);
+                        } else {
+                            uploadProgress.style.display = 'none';
+                            showError(data.error || '分析失败');
+                        }
+                    } else {
+                        uploadProgress.style.display = 'none';
+                        showError('服务器错误');
+                    }
+                    analyzeBtn.disabled = false;
+                });
                 
-                if (data.success) {
-                    showResults(data);
-                } else {
-                    showError(data.error || '分析失败');
-                }
+                xhr.addEventListener('error', () => {
+                    uploadProgress.style.display = 'none';
+                    showError('网络错误');
+                    analyzeBtn.disabled = false;
+                });
+                
+                // 上传完成回调
+                xhr.upload.addEventListener('load', () => {
+                    // 上传完成，显示分析中状态
+                    progressText.innerHTML = '⏳ 分析中...';
+                    progressBarFill.style.width = '100%';
+                    progressBarFill.style.animation = 'pulse 1s ease-in-out infinite';
+                });
+                
+                progressText.textContent = '上传中... 0%';
+                xhr.open('POST', '/upload');
+                xhr.send(formData);
+                
             } catch (error) {
-                showError('网络错误: ' + error.message);
-            } finally {
-                loading.style.display = 'none';
+                uploadProgress.style.display = 'none';
+                showError('错误: ' + error.message);
                 analyzeBtn.disabled = false;
             }
         });
         
         function showResults(data) {
             const analysis = data.analysis;
+            audioData = data.audio;
+            audioDuration = analysis.duration;
             
-            // 更新基本信息
+            // 质量评分
+            const qualityGrade = analysis.quality_grade || 'C';
+            const qualityScore = analysis.quality_score || 50;
+            const qualityDesc = analysis.quality_desc || '一般';
+            
+            const gradeTexts = { A: '优秀', B: '良好', C: '一般', D: '较差', E: '很差' };
+            
+            document.getElementById('qualityBadge').textContent = qualityGrade;
+            document.getElementById('qualityBadge').className = `quality-badge grade-${qualityGrade.toLowerCase()}`;
+            document.getElementById('qualityTitle').textContent = `音频质量：${gradeTexts[qualityGrade] || '一般'}`;
+            document.getElementById('qualityDesc').textContent = `评分 ${qualityScore} 分`;
+            document.getElementById('confidenceValue').textContent = `${(analysis.confidence * 100).toFixed(0)}%`;
+            
+            // 基本信息
             document.getElementById('sampleRate').textContent = `${(analysis.sample_rate / 1000).toFixed(1)} kHz`;
-            document.getElementById('duration').textContent = `${analysis.duration.toFixed(2)} 秒`;
             document.getElementById('maxFreq').textContent = `${(analysis.max_effective_freq / 1000).toFixed(1)} kHz`;
-            document.getElementById('confidence').textContent = `${(analysis.confidence * 100).toFixed(1)}%`;
             
-            // 判断音频类型
+            // 音频类型
             let audioType = '未知';
             if (analysis.sample_rate <= 48000) {
-                audioType = analysis.is_lossless ? 'CD音质 (真无损)' : 'CD音质 (疑似假无损)';
+                audioType = analysis.is_lossless ? '真无损' : '疑似假无损';
             } else {
-                audioType = analysis.is_hi_res ? '高解析度 (真)' : '高解析度 (疑似升频)';
+                audioType = analysis.is_hi_res ? '真高解析度' : '疑似升频';
             }
             document.getElementById('audioType').textContent = audioType;
             
-            // 更新总体状态
-            const overallStatus = document.getElementById('overallStatus');
-            const hasIssues = analysis.issues && analysis.issues.length > 0;
-            
-            if (!hasIssues) {
-                overallStatus.innerHTML = '<span class="status-icon status-good">✅</span> 音频质量良好，未发现明显问题';
-            } else {
-                overallStatus.innerHTML = '<span class="status-icon status-warning">⚠️</span> 检测到潜在问题';
-            }
-            
-            // 显示问题列表
+            // 问题列表
             const issuesList = document.getElementById('issuesList');
             const issuesContainer = document.getElementById('issuesContainer');
             
-            if (hasIssues) {
+            if (analysis.issues && analysis.issues.length > 0) {
                 issuesList.style.display = 'block';
                 issuesContainer.innerHTML = analysis.issues.map(issue => `
                     <div class="issue-item">
-                        <span class="issue-icon">${issue.includes('❌') ? '❌' : '⚠️'}</span>
+                        <span>${issue.includes('❌') ? '❌' : '⚠️'}</span>
                         <span>${issue.replace('❌', '').replace('⚠️', '').trim()}</span>
                     </div>
                 `).join('');
@@ -446,11 +943,153 @@
                 issuesList.style.display = 'none';
             }
             
-            // 显示频谱图
+            // 频谱图
             document.getElementById('spectrogram').src = `data:image/png;base64,${data.spectrogram}`;
+            
+            // 播放器设置
+            if (audioData) {
+                canPlay = checkPlayableFormat(audioData.filename);
+                
+                document.getElementById('audioFilename').textContent = audioData.filename;
+                updateTimeDisplay(totalTimeEl, audioDuration);
+                
+                if (canPlay) {
+                    audioPlayer.src = `data:${audioData.mime};base64,${audioData.data}`;
+                    formatWarning.style.display = 'none';
+                    playerControls.style.opacity = '1';
+                } else {
+                    audioPlayer.src = '';
+                    formatWarning.style.display = 'block';
+                    playerControls.style.opacity = '0.5';
+                }
+                
+                playerCard.style.display = 'block';
+                spectrogramWrapper.classList.add('interactive');
+                timelineBar.style.display = 'block';
+                
+                // 初始化时间线位置
+                timelineBar.style.left = '6.7%';
+            }
             
             results.style.display = 'block';
         }
+        
+        // 播放器控制
+        let animationId = null;
+        
+        function updateTimeDisplaySmooth() {
+            if (!audioPlayer.paused) {
+                updateTimeDisplay(currentTimeEl, audioPlayer.currentTime);
+                animationId = requestAnimationFrame(updateTimeDisplaySmooth);
+            }
+        }
+        
+        playBtn.addEventListener('click', () => {
+            if (!canPlay) return;
+            
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                playBtn.textContent = '⏸';
+                updateTimeDisplaySmooth();
+            } else {
+                audioPlayer.pause();
+                playBtn.textContent = '▶';
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                }
+            }
+        });
+        
+        audioPlayer.addEventListener('timeupdate', () => {
+            const progress = (audioPlayer.currentTime / audioDuration) * 100;
+            progressFill.style.width = `${progress}%`;
+            
+            updateTimeline(audioPlayer.currentTime);
+        });
+        
+        audioPlayer.addEventListener('ended', () => {
+            playBtn.textContent = '▶';
+            progressFill.style.width = '0%';
+            timelineBar.style.left = '6.7%';
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        });
+        
+        volumeSlider.addEventListener('input', (e) => {
+            audioPlayer.volume = e.target.value;
+        });
+        
+        progressBar.addEventListener('click', (e) => {
+            if (!canPlay) return;
+            const rect = progressBar.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            audioPlayer.currentTime = pos * audioDuration;
+        });
+        
+        // 频谱图时间线 - 需要考虑matplotlib频谱图的实际时间轴区域
+        // matplotlib频谱图通常有边距，时间轴从约6.7%开始到87%结束
+        function updateTimeline(currentTime) {
+            const img = document.getElementById('spectrogram');
+            if (!img || img.clientWidth === 0) return;
+            
+            // 频谱图的时间轴区域（考虑matplotlib的边距）
+            const plotLeft = 0.067;  // 左边距比例
+            const plotRight = 0.87; // 右边距比例
+            const plotWidth = plotRight - plotLeft;
+            
+            // 计算时间线位置
+            const pos = plotLeft + (currentTime / audioDuration) * plotWidth;
+            timelineBar.style.left = `${pos * 100}%`;
+        }
+        
+        // 频谱图点击跳转
+        spectrogramWrapper.addEventListener('click', (e) => {
+            if (!audioData || !canPlay) return;
+            
+            const img = document.getElementById('spectrogram');
+            const rect = img.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickRatio = clickX / rect.width;
+            
+            // 频谱图的时间轴区域
+            const plotLeft = 0.067;
+            const plotRight = 0.87;
+            
+            // 只在时间轴区域内响应点击
+            if (clickRatio >= plotLeft && clickRatio <= plotRight) {
+                const timeRatio = (clickRatio - plotLeft) / (plotRight - plotLeft);
+                audioPlayer.currentTime = timeRatio * audioDuration;
+            }
+        });
+        
+        // 频谱图悬停显示时间
+        spectrogramWrapper.addEventListener('mousemove', (e) => {
+            if (!audioData) return;
+            
+            const img = document.getElementById('spectrogram');
+            const rect = img.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickRatio = clickX / rect.width;
+            
+            const plotLeft = 0.067;
+            const plotRight = 0.87;
+            
+            if (clickRatio >= plotLeft && clickRatio <= plotRight) {
+                const timeRatio = (clickRatio - plotLeft) / (plotRight - plotLeft);
+                const time = timeRatio * audioDuration;
+                
+                timeTooltip.textContent = formatTime(time).main + formatTime(time).ms;
+                timeTooltip.style.left = `${clickX}px`;
+                timeTooltip.style.display = 'block';
+            } else {
+                timeTooltip.style.display = 'none';
+            }
+        });
+        
+        spectrogramWrapper.addEventListener('mouseleave', () => {
+            timeTooltip.style.display = 'none';
+        });
         
         function showError(message) {
             errorMessage.textContent = message;

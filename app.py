@@ -3,7 +3,12 @@ import os
 import uuid
 import librosa
 import numpy as np
+
+# 设置matplotlib非交互式后端（必须在导入pyplot之前）
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
 from scipy import signal
 import io
 import base64
@@ -406,32 +411,87 @@ class AudioAnalyzer:
                     self.logger.info(f"高频噪音水平: {noise_ratio:.6f}")
     
     def _calculate_confidence(self, result):
-        """计算检测结果置信度"""
-        confidence = 0.5  # 基础置信度
+        """计算检测结果置信度和质量评分"""
+        confidence = 0.5
+        quality_score = 100  # 质量评分（0-100）
         
-        if result['sample_rate'] <= 48000:
-            # CD音质
+        sr = result['sample_rate']
+        max_freq = result['max_effective_freq']
+        issues = result.get('issues', [])
+        
+        # 根据问题数量和质量扣分
+        for issue in issues:
+            if '❌' in issue:
+                quality_score -= 25  # 严重问题
+            elif '⚠️' in issue:
+                quality_score -= 10  # 警告问题
+        
+        if sr <= 48000:
+            # CD音质音频
             if not result['is_lossless']:
-                # 如果有多个问题证据，提高置信度
+                # 检测到假无损，置信度高
                 issues_count = len([k for k in result['analysis'].keys() 
                                   if k in ['mp3_transcode', 'early_rolloff', 'aac_features']])
-                confidence = 0.6 + issues_count * 0.15
+                confidence = 0.75 + issues_count * 0.08
             else:
-                # 如果真无损证据充分
-                if result['max_effective_freq'] > 18000:
-                    confidence = 0.7
+                # 真无损，根据频率范围评估
+                if max_freq >= 20000:
+                    confidence = 0.85
+                    quality_score = max(quality_score, 85)
+                elif max_freq >= 18000:
+                    confidence = 0.75
+                    quality_score = max(quality_score, 75)
+                elif max_freq >= 16000:
+                    confidence = 0.65
+                    quality_score = max(quality_score, 60)
+                else:
+                    # 频率过低，可能是低质量音源
+                    confidence = 0.55
+                    if max_freq < 10000:
+                        quality_score = min(quality_score, 40)
         else:
-            # 高解析度
+            # 高解析度音频
             if not result['is_hi_res']:
                 issues_count = len([k for k in result['analysis'].keys() 
                                   if k in ['upscaling', 'boundary_21k_24k', 'noise_after_boundary']])
-                confidence = 0.6 + issues_count * 0.15
+                confidence = 0.75 + issues_count * 0.08
             else:
-                if result['max_effective_freq'] > 35000:
-                    confidence = 0.8
+                if max_freq >= 40000:
+                    confidence = 0.90
+                    quality_score = max(quality_score, 90)
+                elif max_freq >= 35000:
+                    confidence = 0.80
+                    quality_score = max(quality_score, 80)
+                elif max_freq >= 30000:
+                    confidence = 0.70
+                    quality_score = max(quality_score, 70)
+        
+        # 频谱平坦度影响
+        flatness = result.get('detailed_metrics', {}).get('spectral_flatness', 0)
+        if flatness > 0.4:
+            quality_score -= 15
         
         result['confidence'] = min(confidence, 0.95)
-        self.logger.info(f"检测置信度: {result['confidence']:.2%}")
+        result['quality_score'] = max(0, min(100, quality_score))
+        
+        # 生成质量等级
+        if quality_score >= 85:
+            result['quality_grade'] = 'A'
+            result['quality_desc'] = '优秀'
+        elif quality_score >= 70:
+            result['quality_grade'] = 'B'
+            result['quality_desc'] = '良好'
+        elif quality_score >= 55:
+            result['quality_grade'] = 'C'
+            result['quality_desc'] = '一般'
+        elif quality_score >= 40:
+            result['quality_grade'] = 'D'
+            result['quality_desc'] = '较差'
+        else:
+            result['quality_grade'] = 'E'
+            result['quality_desc'] = '很差'
+        
+        self.logger.info(f"检测置信度: {result['confidence']:.2%}, 质量评分: {result['quality_score']}分 ({result['quality_grade']})")
     
     def _log_analysis_result(self, result):
         """记录分析结果到日志文件（线程安全）"""
@@ -484,13 +544,19 @@ def upload():
     original_filename = file.filename
     app.logger.info(f"收到上传请求: {original_filename}")
     
+    # 获取文件MIME类型
+    file_content = file.read()
+    file_mime = file.content_type or 'audio/mpeg'
+    audio_base64 = base64.b64encode(file_content).decode()
+    
     try:
         # 保存文件（线程安全）
         filename = str(uuid.uuid4()) + '_' + original_filename
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         
         with file_lock:
-            file.save(filepath)
+            with open(filepath, 'wb') as f:
+                f.write(file_content)
         
         app.logger.info(f"文件已保存: {filepath}")
         
@@ -518,7 +584,12 @@ def upload():
             response=json.dumps({
                 'success': True,
                 'spectrogram': spec_base64,
-                'analysis': analysis
+                'analysis': analysis,
+                'audio': {
+                    'data': audio_base64,
+                    'mime': file_mime,
+                    'filename': original_filename
+                }
             }, cls=NumpyJSONEncoder, ensure_ascii=False),
             status=200,
             mimetype='application/json'
