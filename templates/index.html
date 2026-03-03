@@ -1022,6 +1022,7 @@
         let previewSpectrogramData = null;
         let segmentDuration = 2; // 默认2秒
         let segmentStartTime = 0;
+        let animationId = null; // 播放器动画帧ID
 
         // 不支持浏览器播放的格式
         const unsupportedFormats = ['.ape', '.wma', '.dsd', '.dff'];
@@ -1079,9 +1080,50 @@
             }
         });
 
+        // 重置播放器状态
+        function resetPlayer() {
+            // 停止当前播放
+            if (audioPlayer && !audioPlayer.paused) {
+                audioPlayer.pause();
+                audioPlayer.currentTime = 0;
+            }
+
+            // 清除音频源
+            if (audioPlayer) {
+                audioPlayer.src = '';
+                audioPlayer.load();
+            }
+
+            // 重置播放按钮
+            if (playBtn) {
+                playBtn.textContent = '▶';
+            }
+
+            // 取消动画帧
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+
+            // 隐藏播放器和结果
+            if (playerCard) playerCard.style.display = 'none';
+            if (results) results.style.display = 'none';
+
+            // 重置状态变量
+            audioData = null;
+            audioDuration = 0;
+            canPlay = true;
+
+            // 隐藏错误消息
+            if (errorMessage) errorMessage.style.display = 'none';
+        }
+
         // 处理文件选择
         async function handleFileSelection() {
             if (!selectedFile) return;
+
+            // 重置之前的播放状态
+            resetPlayer();
 
             const fileSizeMB = selectedFile.size / 1024 / 1024;
             document.getElementById('uploadText').textContent = selectedFile.name;
@@ -1660,7 +1702,6 @@
         }
 
         // 播放器控制
-        let animationId = null;
 
         function updateTimeDisplaySmooth() {
             if (!audioPlayer.paused) {
