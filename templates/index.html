@@ -808,7 +808,7 @@
                     <div class="upload-subtext" id="uploadSubtext"></div>
                     <div class="upload-info">
                         <strong>支持格式：</strong>FLAC, WAV, MP3, APE, OGG, M4A, AAC, WMA<br>
-                        <strong>文件大小：</strong>最大 200MB | <strong>注意：</strong>部分格式(如APE)可能无法在线播放
+                        <strong>文件大小：</strong>≤4.5MB直接分析，>4.5MB需截取片段上传（最大200MB）| <strong>注意：</strong>部分格式(如APE)可能无法在线播放
                     </div>
                 </div>
                 
@@ -1130,7 +1130,7 @@
             document.getElementById('uploadSubtext').textContent = `文件大小: ${fileSizeMB.toFixed(2)} MB`;
 
             // 小于3MB的文件直接上传，大于3MB的需要选择片段
-            if (fileSizeMB <= 3) {
+            if (fileSizeMB <= 4.5) {
                 analyzeBtn.style.display = 'block';
                 previewSection.classList.remove('active');
             } else {
