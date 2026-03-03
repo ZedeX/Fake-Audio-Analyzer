@@ -37,10 +37,14 @@ else:
     app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200MB limit
     ENABLE_FILE_LOG = True
     
-    # 创建必要的目录
-    for folder in [app.config['UPLOAD_FOLDER'], app.config['LOG_FOLDER']]:
-        if not os.path.exists(folder):
-            os.makedirs(folder)
+    # 创建必要的目录（Vercel文件系统只读，需捕获异常）
+    try:
+        for folder in [app.config['UPLOAD_FOLDER'], app.config['LOG_FOLDER']]:
+            if not os.path.exists(folder):
+                os.makedirs(folder)
+    except OSError:
+        # Vercel等只读文件系统环境，忽略错误
+        pass
 
 # 线程锁（用于保护共享资源）
 file_lock = threading.Lock()
