@@ -1,7 +1,6 @@
 """
 Vercel Serverless API 入口
 兼容 Vercel Serverless 部署
-使用轻量级app2.py
 """
 
 import os
@@ -14,10 +13,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 # 设置环境变量（关键！）
 os.environ['VERCEL_ENV'] = 'true'
 
-# 导入主应用（使用轻量版app2）
-from app2 import app
+# 导入主应用
+from app import app
 
 # Vercel需要app作为默认导出
 # 对于Flask应用，Vercel会自动处理WSGI接口
-def handler(event, context):
-	return app

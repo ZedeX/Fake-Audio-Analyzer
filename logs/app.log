@@ -1,0 +1,24 @@
+2026-03-03 22:49:50,706 - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.192:5000
+2026-03-03 22:49:50,707 - INFO - Press CTRL+C to quit
+2026-03-03 22:49:55,577 - INFO - 127.0.0.1 - - [03/Mar/2026 22:49:55] "[35m[1mGET / HTTP/1.1[0m" 500 -
+2026-03-03 22:49:56,236 - INFO - 127.0.0.1 - - [03/Mar/2026 22:49:56] "[35m[1mGET / HTTP/1.1[0m" 500 -
+2026-03-03 22:49:56,289 - INFO - 127.0.0.1 - - [03/Mar/2026 22:49:56] "GET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 200 -
+2026-03-03 22:49:56,289 - INFO - 127.0.0.1 - - [03/Mar/2026 22:49:56] "GET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
+2026-03-03 22:49:56,415 - INFO - 127.0.0.1 - - [03/Mar/2026 22:49:56] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=A5bIPlbMOjVQfBZo3mkY HTTP/1.1" 200 -
+2026-03-03 22:49:56,710 - INFO - 127.0.0.1 - - [03/Mar/2026 22:49:56] "GET /?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1" 200 -
+2026-03-03 22:50:28,880 - INFO - 127.0.0.1 - - [03/Mar/2026 22:50:28] "GET / HTTP/1.1" 200 -
+2026-03-03 22:50:42,037 - INFO - 收到上传请求: LRTS#第003集_你的喜好你的死亡陷阱#2772#3.mp3
+2026-03-03 22:50:42,038 - INFO - 文件已保存: uploads\3a080f4d-bc7b-4d5f-98dd-4ee903a1dbfe_LRTS#第003集_你的喜好你的死亡陷阱#2772#3.mp3
+2026-03-03 22:50:45,004 - INFO - 频谱图生成完成
+2026-03-03 22:50:45,005 - INFO - 开始分析文件: 3a080f4d-bc7b-4d5f-98dd-4ee903a1dbfe_LRTS#第003集_你的喜好你的死亡陷阱#2772#3.mp3
+2026-03-03 22:50:45,006 - INFO - 采样率: 16.0kHz, 时长: 171.65秒
+2026-03-03 22:50:45,083 - INFO - 检测CD音质音频...
+2026-03-03 22:50:45,083 - INFO - 频谱滚降点: 6.3kHz
+2026-03-03 22:50:45,216 - INFO - 检测置信度: 50.00%
+2026-03-03 22:50:45,217 - INFO - 分析完成: 3a080f4d-bc7b-4d5f-98dd-4ee903a1dbfe_LRTS#第003集_你的喜好你的死亡陷阱#2772#3.mp3 | 置信度:50.0% | 问题:⚠️ 频谱过早滚降：在6.3kHz处能量已低于0.1%
+2026-03-03 22:50:45,224 - INFO - 音频分析完成: LRTS#第003集_你的喜好你的死亡陷阱#2772#3.mp3
+2026-03-03 22:50:45,224 - INFO - 临时文件已清理: uploads\3a080f4d-bc7b-4d5f-98dd-4ee903a1dbfe_LRTS#第003集_你的喜好你的死亡陷阱#2772#3.mp3
+2026-03-03 22:50:45,233 - INFO - 127.0.0.1 - - [03/Mar/2026 22:50:45] "POST /upload HTTP/1.1" 200 -
